@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  mongo01:
+    container_name: mongo01
+    image: mongo:latest
+    command: mongod --replSet rs0 --bind_ip_all
+    volumes:
+      - mongo01_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+    ports:
+      - "27017:27017"
+    networks:
+      - red01
+
+  mongo02:
+    container_name: mongo02
+    image: mongo:latest
+    command: sh -c "sleep 30 && mongod --replSet rs0 --bind_ip_all"
+    volumes:
+      - mongo02_data:/data/db
+    ports:
+      - "27018:27017"
+    networks:
+      - red01
+
+  mongo03:
+    container_name: mongo03
+    image: mongo:latest
+    command: sh -c "sleep 30 && mongod --replSet rs0 --bind_ip_all"
+    volumes:
+      - mongo03_data:/data/db
+    ports:
+      - "27019:27017"
+    networks:
+      - red01
+
+  mongo04:
+    container_name: mongo04
+    image: mongo:latest
+    command: sh -c "sleep 30 && mongod --replSet rs0 --bind_ip_all"
+    volumes:
+      - mongo04_data:/data/db
+    ports:
+      - "27020:27017"
+    networks:
+      - red01
+
+  redis:
+    container_name: redis
+    image: redis:latest
+    depends_on:
+      - mongo01
+      - mongo02
+      - mongo03
+      - mongo04
+    networks:
+      - red01
+
+networks:
+  red01:
+
+volumes:
+  mongo01_data:
+  mongo02_data:
+  mongo03_data:
+  mongo04_data:
