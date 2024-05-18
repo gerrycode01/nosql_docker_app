@@ -7,6 +7,7 @@ services:
     command: mongod --replSet rs0 --bind_ip_all
     volumes:
       - mongo01_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
     ports:
       - "27017:27017"
     networks:
