@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  app:
+    image: gespinosa01/node-rutas2
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis01
+      - neo4j01
+    networks:
+      - red01
+
+  redis01:
+    image: redis
+    networks:
+      - red01
+
+  neo4j01:
+    image: neo4j:latest
+    environment:
+      NEO4J_AUTH: none
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    networks:
+      - red01
+
+networks:
+  red01:
