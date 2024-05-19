@@ -1,35 +1,38 @@
 const { redisClient } = require('../config/db');
 
-const logger = (req, res, next) => {
-    // Capta el objeto de respuesta original
-    const originalSend = res.send;
+module.exports = (req, res, next) => {
+  res.on('finish', () => {
+    // Verificar si el cliente de Redis está conectado
+    if (!redisClient.isOpen) {
+      console.error('Redis client -->> No conectado.');
+      return;
+    }
 
-    // Modifica la función send de la respuesta para capturar los datos antes de enviarlos
-    res.send = function(data) {
-        // Asegura que el originalSend sigue siendo llamado con el contexto y argumentos correctos
-        originalSend.apply(res, arguments);
+    // Crear una clave única para cada log
+    const key = `${req.method}:${Date.now()}:${req.originalUrl}`;
 
-        // Registra la respuesta y la petición en Redis
-        const logEntry = {
-            method: req.method,
-            timestamp: new Date(),
-            endpoint: req.originalUrl,
-            requestData: req.body, // Asegúrate de que la solicitud usa express.json() o bodyParser para parsear el body
-            responseData: data instanceof Buffer ? data.toString() : data
-        };
+    // Construir el objeto de entrada del log
+    const logEntry = JSON.stringify({
+      time: new Date(),
+      req: {
+        method: req.method,
+        url: req.originalUrl,
+        headers: req.headers,
+        body: req.body
+      },
+      res: {
+        statusCode: res.statusCode,
+        statusMessage: res.statusMessage
+      }
+    });
 
-        // Convertir el objeto logEntry a string para almacenarlo en Redis
-        const logString = JSON.stringify(logEntry);
+    // Guardar el log en Redis con una expiración de 24 horas
+    redisClient.set(key, logEntry, 'EX', 60 * 60 * 24, (err) => {
+      if (err) {
+        console.error('Error al salvar en Redis:', err);
+      }
+    });
+  });
 
-        // Almacenar el log en Redis, usando una lista de Redis
-        redisClient.rpush('api_logs', logString, (err) => {
-            if (err) {
-                console.error('Error al guardar en Redis:', err);
-            }
-        });
-    };
-
-    next();
+  next();
 };
-
-module.exports = logger;
