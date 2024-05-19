@@ -5,7 +5,8 @@ const grupoSchema = new mongoose.Schema({
   docente: { type: mongoose.Schema.Types.ObjectId, ref: 'Docente' },
   estudiantes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Alumno' }],
   aula: { type: mongoose.Schema.Types.ObjectId, ref: 'Aula' },
-  horario: String
+  horario: String,
+  timestamps: true
 });
 
 module.exports = mongoose.model('Grupo', grupoSchema);

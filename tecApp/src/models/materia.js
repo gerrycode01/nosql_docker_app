@@ -5,7 +5,8 @@ const materiaSchema = new mongoose.Schema({
   nombre: String,
   carrera: String,
   descripcion: String,
-  planestudios: String
+  planestudios: String,
+  timestamps: true
 });
 
 module.exports = mongoose.model('Materia', materiaSchema);
