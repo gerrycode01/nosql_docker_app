@@ -2,8 +2,8 @@ version: '3.8'
 
 services:
   app:
+    container_name: tecapp
     build: .
-    container_name: miapp
     ports:
       - "3000:3000"
     depends_on:
