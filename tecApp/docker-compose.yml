@@ -3,6 +3,7 @@ version: '3.8'
 services:
   app:
     build: .
+    container_name: miapp
     ports:
       - "3000:3000"
     depends_on:
@@ -12,8 +13,8 @@ services:
       - mongo04
       - redis01
     environment:
-      - MONGO_URI=mongodb://mongo01:27017/tec?replicaSet=rs0
-      - REDIS_HOST=redis
+      - MONGO_URI=mongodb://mongo01:27017,mongo02:27018,mongo03:27019,mongo04:27020/tec?replicaSet=rs0&serverSelectionTimeoutMS=60000
+      - REDIS_HOST=redis01
       - REDIS_PORT=6379
       - PORT=3000
     networks:
@@ -23,8 +24,6 @@ services:
     container_name: mongo01
     image: mongo:latest
     command: mongod --replSet rs0 --bind_ip_all
-    volumes:
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
     ports:
       - "27017:27017"
     networks:
@@ -57,7 +56,7 @@ services:
     networks:
       - red01
 
-  redis:
+  redis01:
     container_name: redis01
     image: redis:latest
     ports:
