@@ -7,6 +7,8 @@ const { mongoose, redisClient } = require('./config/db');
 
 const app = express();
 
+// Middleware personalizado para registrar solicitudes en Redis
+app.use(logger);
 // Middleware para parsear solicitudes JSON
 app.use(express.json());
 
@@ -15,9 +17,6 @@ app.use(cors());
 
 // Middleware para registrar solicitudes HTTP
 app.use(morgan('dev'));
-
-// Middleware personalizado para registrar solicitudes en Redis
-app.use(logger);
 
 const alumnosRoutes = require('./routes/alumnos');
 const materiasRoutes = require('./routes/materias');
