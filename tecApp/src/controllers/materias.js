@@ -13,7 +13,7 @@ exports.getAllMaterias = async (req, res) => {
 // Obtener una materia por ID
 exports.getMateriaById = async (req, res) => {
     try {
-        const materia = await Materia.findById(req.params.id);
+        const materia = await Materia.findOne({ id: req.params.id });
         if (!materia) {
             return res.status(404).json({ message: 'Materia no encontrada' });
         }
@@ -37,7 +37,7 @@ exports.createMateria = async (req, res) => {
 // Actualizar una materia por ID
 exports.updateMateria = async (req, res) => {
     try {
-        const updatedMateria = await Materia.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const updatedMateria = await Materia.findOneAndUpdate({ id: req.params.id }, req.body, { new: true });
         res.status(200).json(updatedMateria);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -47,7 +47,7 @@ exports.updateMateria = async (req, res) => {
 // Eliminar una materia por ID
 exports.deleteMateria = async (req, res) => {
     try {
-        const deletedMateria = await Materia.findByIdAndDelete(req.params.id);
+        const deletedMateria = await Materia.findOneAndDelete({ id: req.params.id });
         if (!deletedMateria) {
             return res.status(404).json({ message: 'Materia no encontrada' });
         }

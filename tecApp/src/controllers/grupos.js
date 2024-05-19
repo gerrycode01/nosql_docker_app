@@ -13,7 +13,7 @@ exports.getAllGrupos = async (req, res) => {
 // Obtener un grupo por ID
 exports.getGrupoById = async (req, res) => {
     try {
-        const grupo = await Grupo.findById(req.params.id).populate('materia docente estudiantes aula');
+        const grupo = await Grupo.findOne({ id: req.params.id }).populate('materia docente estudiantes aula');
         if (!grupo) {
             return res.status(404).json({ message: 'Grupo no encontrado' });
         }
@@ -37,7 +37,7 @@ exports.createGrupo = async (req, res) => {
 // Actualizar un grupo por ID
 exports.updateGrupo = async (req, res) => {
     try {
-        const updatedGrupo = await Grupo.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('materia docente estudiantes aula');
+        const updatedGrupo = await Grupo.findOneAndUpdate({ id: req.params.id }, req.body, { new: true }).populate('materia docente estudiantes aula');
         res.status(200).json(updatedGrupo);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -47,7 +47,7 @@ exports.updateGrupo = async (req, res) => {
 // Eliminar un grupo por ID
 exports.deleteGrupo = async (req, res) => {
     try {
-        const deletedGrupo = await Grupo.findByIdAndDelete(req.params.id);
+        const deletedGrupo = await Grupo.findOneAndDelete({ id: req.params.id });
         if (!deletedGrupo) {
             return res.status(404).json({ message: 'Grupo no encontrado' });
         }
