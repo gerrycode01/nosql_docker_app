@@ -10,6 +10,7 @@ services:
       - mongo02
       - mongo03
       - mongo04
+      - redis01
     environment:
       - MONGO_URI=mongodb://mongo01:27017/tec?replicaSet=rs0
       - REDIS_HOST=redis
@@ -57,7 +58,7 @@ services:
       - red01
 
   redis:
-    container_name: redis
+    container_name: redis01
     image: redis:latest
     ports:
       - "6379:6379"
