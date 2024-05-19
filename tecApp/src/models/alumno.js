@@ -7,11 +7,11 @@ const alumnoSchema = new mongoose.Schema({
   carrera: String,
   tecnologico: String,
   materiasC: [{
-    materia: { type: mongoose.Schema.Types.ObjectId, ref: 'Materia' },
+    id: String,  // Utilizando un identificador personalizado
     calificacion: Number
   }],
-  materiasA: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Materia' }],
-  materiasP: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Materia' }]
+  materiasA: [{ id: String }],  // Utilizando un identificador personalizado
+  materiasP: [{ id: String }]  // Utilizando un identificador personalizado
 }, { timestamps: true });
 
 module.exports = mongoose.model('Alumno', alumnoSchema);
