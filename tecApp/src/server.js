@@ -19,9 +19,18 @@ app.use(morgan('dev'));
 // Middleware personalizado para registrar solicitudes en Redis
 app.use(logger);
 
-//TODO:
-// Aquí irán las rutas de tu aplicación
-// Ejemplo: app.use('/api/oficinas', require('./routes/oficinas'));
+const alumnosRoutes = require('./routes/alumnos');
+const materiasRoutes = require('./routes/materias');
+const aulasRoutes = require('./routes/aulas');
+const docentesRoutes = require('./routes/docentes');
+const gruposRoutes = require('./routes/grupos');
+
+app.use('/api/alumnos', alumnosRoutes);
+app.use('/api/materias', materiasRoutes);
+app.use('/api/aulas', aulasRoutes);
+app.use('/api/docentes', docentesRoutes);
+app.use('/api/grupos', gruposRoutes);
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
