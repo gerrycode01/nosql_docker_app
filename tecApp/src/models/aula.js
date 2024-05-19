@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const aulaSchema = new mongoose.Schema({
-  idaula: { type: String, required: true, unique: true },
+  id: { type: String, required: true, unique: true },
   edificio: String,
   grupos: [{ id: String }],
   descripcion: String
