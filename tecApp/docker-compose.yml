@@ -49,6 +49,8 @@ services:
   redis:
     container_name: redis
     image: redis:latest
+    ports:
+      - "6379:6379"
     depends_on:
       - mongo01
       - mongo02
