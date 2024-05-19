@@ -7,5 +7,3 @@ rs.initiate({
     { _id: 3, host: "mongo04:27017", priority: 1 }
   ]
 });
-
-print('Conjunto de réplicas iniciado');
