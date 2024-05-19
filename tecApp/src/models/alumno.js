@@ -11,9 +11,7 @@ const alumnoSchema = new mongoose.Schema({
     calificacion: Number
   }],
   materiasA: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Materia' }],
-  materiasP: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Materia' }],
-  // Configuración de opciones del esquema: timestamps agrega createdAt y updatedAt automáticamente
-  timestamps: true
-});
+  materiasP: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Materia' }]
+}, { timestamps: true });
 
 module.exports = mongoose.model('Alumno', alumnoSchema);

@@ -4,8 +4,7 @@ const aulaSchema = new mongoose.Schema({
   idaula: { type: String, required: true, unique: true },
   edificio: String,
   grupos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Grupo' }],
-  descripcion: String,
-  timestamps: true
-});
+  descripcion: String
+}, { timestamps: true });
 
 module.exports = mongoose.model('Aula', aulaSchema);
