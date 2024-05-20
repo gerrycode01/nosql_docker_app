@@ -6,7 +6,8 @@ const {
     createAlumno,
     updateAlumno,
     deleteAlumno,
-    getMateriasCursadas
+    getMateriasCursadas,
+    getCalificacionesAlumno
 } = require('../controllers/alumnos');
 
 // Ruta para obtener todos los alumnos
@@ -26,5 +27,8 @@ router.delete('/:curp', deleteAlumno);
 
 // Ruta para obtener las materias cursadas por un alumno mediante su CURP
 router.get('/:curp/materias-cursadas', getMateriasCursadas);
+
+// Ruta para obtener las calificaciones de un alumno
+router.get('/:curp/calificaciones', getCalificacionesAlumno);
 
 module.exports = router;

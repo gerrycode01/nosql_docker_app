@@ -81,6 +81,9 @@ exports.getMateriasCursadas = async (req, res) => {
         $project: {
           curp: 1,
           nc: 1,
+          nombre: 1,
+          carrera: 1,
+          tecnologico: 1,
           materiasCursadas: 1
         }
       }
@@ -93,5 +96,44 @@ exports.getMateriasCursadas = async (req, res) => {
     res.status(200).json(alumnoConMaterias[0]);
   } catch (error) {
     res.status(500).json({ message: "Error al obtener las materias cursadas del alumno: " + error.message });
+  }
+};
+
+// Listar las calificaciones de un alumno en todas sus materias cursadas
+exports.getCalificacionesAlumno = async (req, res) => {
+  try {
+      const { curp } = req.params;
+
+      // Encuentra el alumno y realiza una búsqueda para las materias
+      const alumno = await Alumno.findOne({ curp: curp });
+      if (!alumno) {
+          return res.status(404).json({ message: "Alumno no encontrado" });
+      }
+
+      // Extrayendo los IDs de materias cursadas
+      const materiasIds = alumno.materiasC.map(m => m.id);
+
+      // Obteniendo la información de las materias con esos IDs
+      const materias = await Materia.find({ id: { $in: materiasIds } });
+
+      // Construyendo la respuesta con las calificaciones
+      const materiasConCalificaciones = alumno.materiasC.map(mc => {
+          const materiaInfo = materias.find(m => m.id === mc.id);
+          return {
+              materia: materiaInfo,
+              calificacion: mc.calificacion
+          };
+      });
+
+      res.status(200).json({
+          alumno: {
+              curp: alumno.curp,
+              nombre: alumno.nombre,
+              carrera: alumno.carrera,
+              materiasCursadas: materiasConCalificaciones
+          }
+      });
+  } catch (error) {
+      res.status(500).json({ message: "Error al obtener las calificaciones del alumno: " + error.message });
   }
 };
