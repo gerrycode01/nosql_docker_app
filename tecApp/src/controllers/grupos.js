@@ -71,8 +71,8 @@ exports.getAlumnosPorMateriaGrupo = async (req, res) => {
         }
 
         // Ahora, obtener detalles de los alumnos
-        const alumnosCurp = grupo.alumnos.map(est => est.curp); // Asume que alumnos es una lista de objetos con id
-        const alumnos = await Alumno.find({ 'curp': { $in: alumnosCurp } });
+        const alumnosCurp = grupo.alumnos.map(est => est.curp); // Asume que alumnos es una lista de objetos con curp
+        const alumnos = await Alumno.find({ 'curp': { $in: alumnosCurp } }).select('-materiasC -materiasA -materiasP');
 
         res.status(200).json({
             grupo: grupoId,
