@@ -8,7 +8,7 @@ const alumnoSchema = new mongoose.Schema({
   tecnologico: String,
   materiasC: [{
     id: String,  // Utilizando un identificador personalizado
-    calificacion: Number
+    cal: Number
   }],
   materiasA: [{ id: String }],  // Utilizando un identificador personalizado
   materiasP: [{ id: String }]  // Utilizando un identificador personalizado

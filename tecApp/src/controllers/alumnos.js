@@ -121,7 +121,7 @@ exports.getCalificacionesAlumno = async (req, res) => {
           const materiaInfo = materias.find(m => m.id === mc.id);
           return {
               materia: materiaInfo,
-              calificacion: mc.calificacion
+              calificacion: mc.cal
           };
       });
 
