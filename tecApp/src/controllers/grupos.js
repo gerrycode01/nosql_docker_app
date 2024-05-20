@@ -1,4 +1,5 @@
 const Grupo = require('../models/grupo');
+const Alumno = require('../models/alumno');
 
 // Obtener todos los grupos
 exports.getAllGrupos = async (req, res) => {
@@ -52,6 +53,33 @@ exports.deleteGrupo = async (req, res) => {
             return res.status(404).json({ message: 'Grupo no encontrado' });
         }
         res.status(200).json({ message: 'Grupo eliminado' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.getAlumnosPorMateriaGrupo = async (req, res) => {
+    try {
+        // Supongamos que `materiaId` y `grupoId` son pasados como parte del request
+        const { materiaId, grupoId } = req.params;
+
+        // Encuentra el grupo que coincide con el grupoId y materiaId
+        const grupo = await Grupo.findOne({ id: grupoId, 'materia.id': materiaId });
+
+        if (!grupo) {
+            return res.status(404).json({ message: 'Grupo con la materia especificada no encontrado' });
+        }
+
+        // Ahora, obtener detalles de los estudiantes
+        const estudiantesCurp = grupo.estudiantes.map(est => est.curp); // Asume que estudiantes es una lista de objetos con id
+        const estudiantes = await Alumno.find({ 'curp': { $in: estudiantesCurp } });
+
+        res.status(200).json({
+            grupo: grupoId,
+            materia: materiaId,
+            estudiantes: estudiantes
+        });
+
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

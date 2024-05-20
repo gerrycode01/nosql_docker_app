@@ -5,7 +5,8 @@ const {
     getGrupoById,
     createGrupo,
     updateGrupo,
-    deleteGrupo
+    deleteGrupo,
+    getAlumnosPorMateriaGrupo
 } = require('../controllers/grupos');
 
 // Ruta para obtener todos los grupos
@@ -22,5 +23,8 @@ router.put('/:id', updateGrupo);
 
 // Ruta para eliminar un grupo por ID
 router.delete('/:id', deleteGrupo);
+
+// Ruta para obtener alumnos por materia y grupo
+router.get('/:grupoId/:materiaId/alumnos', getAlumnosPorMateriaGrupo);
 
 module.exports = router;
