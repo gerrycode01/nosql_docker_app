@@ -4,7 +4,7 @@ const Alumno = require('../models/alumno');
 // Obtener todos los grupos
 exports.getAllGrupos = async (req, res) => {
     try {
-        const grupos = await Grupo.find().populate('materia docente estudiantes aula');
+        const grupos = await Grupo.find().populate('materia docente alumnos aula');
         res.status(200).json(grupos);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -14,7 +14,7 @@ exports.getAllGrupos = async (req, res) => {
 // Obtener un grupo por ID
 exports.getGrupoById = async (req, res) => {
     try {
-        const grupo = await Grupo.findOne({ id: req.params.id }).populate('materia docente estudiantes aula');
+        const grupo = await Grupo.findOne({ id: req.params.id }).populate('materia docente alumnos aula');
         if (!grupo) {
             return res.status(404).json({ message: 'Grupo no encontrado' });
         }
@@ -38,7 +38,7 @@ exports.createGrupo = async (req, res) => {
 // Actualizar un grupo por ID
 exports.updateGrupo = async (req, res) => {
     try {
-        const updatedGrupo = await Grupo.findOneAndUpdate({ id: req.params.id }, req.body, { new: true }).populate('materia docente estudiantes aula');
+        const updatedGrupo = await Grupo.findOneAndUpdate({ id: req.params.id }, req.body, { new: true }).populate('materia docente alumnos aula');
         res.status(200).json(updatedGrupo);
     } catch (error) {
         res.status(400).json({ message: error.message });
@@ -70,14 +70,14 @@ exports.getAlumnosPorMateriaGrupo = async (req, res) => {
             return res.status(404).json({ message: 'Grupo con la materia especificada no encontrado' });
         }
 
-        // Ahora, obtener detalles de los estudiantes
-        const estudiantesCurp = grupo.estudiantes.map(est => est.curp); // Asume que estudiantes es una lista de objetos con id
-        const estudiantes = await Alumno.find({ 'curp': { $in: estudiantesCurp } });
+        // Ahora, obtener detalles de los alumnos
+        const alumnosCurp = grupo.alumnos.map(est => est.curp); // Asume que alumnos es una lista de objetos con id
+        const alumnos = await Alumno.find({ 'curp': { $in: alumnosCurp } });
 
         res.status(200).json({
             grupo: grupoId,
             materia: materiaId,
-            estudiantes: estudiantes
+            alumnos: alumnos
         });
 
     } catch (error) {
