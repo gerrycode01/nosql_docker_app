@@ -93,7 +93,6 @@ exports.getMateriaConDocentes = async (req, res) => {
     }
 };
 
-// Listar las materias que imparte un docente específico, y los alumnos en esas materias
 exports.getMateriasDocenteConAlumnos = async (req, res) => {
     try {
         const rfc = req.params.rfc;
@@ -103,28 +102,25 @@ exports.getMateriasDocenteConAlumnos = async (req, res) => {
         }
 
         // Obtener todos los grupos donde este docente imparte clases
-        const grupos = await Grupo.find({ 'docente.rfc': rfc }).populate({
-            path: 'alumnos.curp',
-            model: 'Alumno',
-            select: 'curp nc nombre carrera tecnologico -_id -materiasC -materiasA -materiasP'
-        });
-
-        // Mapear los IDs de materias de estos grupos para obtener detalles de las materias
-        const materiasIds = grupos.map(grupo => grupo.materia.id);
-        const materias = await Materia.find({ id: { $in: materiasIds } });
+        const grupos = await Grupo.find({ 'docente.rfc': rfc });
 
         // Crear una lista de materias con detalles de los alumnos inscritos
-        const materiasConAlumnos = materias.map(materia => {
-            const grupo = grupos.find(gr => gr.materia.id === materia.id);
-            return {
+        const materiasConAlumnos = [];
+        for (const grupo of grupos) {
+            const materia = await Materia.findOne({ id: grupo.materia.id });
+            const alumnos = await Alumno.find({ curp: { $in: grupo.alumnos.map(a => a.curp) } })
+                                       .select('curp nc nombre carrera tecnologico -_id -materiasC -materiasA -materiasP');
+
+            materiasConAlumnos.push({
                 id: materia.id,
                 nombre: materia.nombre,
                 descripcion: materia.descripcion,
                 carrera: materia.carrera,
                 planestudios: materia.planestudios,
-                alumnos: grupo ? grupo.alumnos : []  // Asegurar que se devuelve la lista de alumnos
-            };
-        });
+                horario: grupo.horario,
+                alumnos: alumnos
+            });
+        }
 
         res.status(200).json({
             docente: {
