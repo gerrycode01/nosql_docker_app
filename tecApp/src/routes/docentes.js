@@ -6,7 +6,8 @@ const {
     createDocente,
     updateDocente,
     deleteDocente,
-    getMateriaConDocentes
+    getMateriaConDocentes,
+    getMateriasDocenteConAlumnos
 } = require('../controllers/docentes');
 
 // Ruta para obtener todos los docentes
@@ -26,5 +27,8 @@ router.delete('/:rfc', deleteDocente);
 
 // Ruta para obtener una materia con sus docentes
 router.get('/:materiaId/detalles', getMateriaConDocentes);
+
+// Ruta para obtener las materias que imparte un docente con los alumnos inscritos
+router.get('/:rfc/materias-con-alumnos', getMateriasDocenteConAlumnos);
 
 module.exports = router;

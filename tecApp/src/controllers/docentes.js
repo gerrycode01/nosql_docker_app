@@ -1,5 +1,6 @@
 const Docente = require('../models/docente');
 const Materia = require('../models/materia');
+const Grupo = require('../models/grupo');
 
 // Obtener todos los docentes
 exports.getAllDocentes = async (req, res) => {
@@ -88,5 +89,52 @@ exports.getMateriaConDocentes = async (req, res) => {
         res.status(200).json(resultado);
     } catch (error) {
         res.status(500).json({ message: 'Error al obtener los datos: ' + error.message });
+    }
+};
+
+// Listar las materias que imparte un docente específico, y los alumnos en esas materias
+exports.getMateriasDocenteConAlumnos = async (req, res) => {
+    try {
+        const rfc = req.params.rfc;
+        const docente = await Docente.findOne({ rfc: rfc }).select('-materias');
+        if (!docente) {
+            return res.status(404).json({ message: 'Docente no encontrado' });
+        }
+
+        // Obtener todos los grupos donde este docente imparte clases
+        const grupos = await Grupo.find({ 'docente.rfc': rfc }).populate({
+            path: 'alumnos.curp',
+            select: 'curp nc nombre carrera tecnologico -_id'  // Suponiendo que estos son los campos en el modelo Alumno
+        });
+
+        // Mapear los IDs de materias de estos grupos para obtener detalles de las materias
+        const materiasIds = grupos.map(grupo => grupo.materia.id);
+        const materias = await Materia.find({ id: { $in: materiasIds } });
+
+        // Crear una lista de materias con detalles de los alumnos inscritos
+        const materiasConAlumnos = materias.map(materia => {
+            const gruposMateria = grupos.filter(gr => gr.materia.id === materia.id);
+            const alumnos = gruposMateria.flatMap(gr => gr.alumnos);  // Aplanar la lista de alumnos de todos los grupos de esta materia
+            return {
+                id: materia.id,
+                nombre: materia.nombre,
+                descripcion: materia.descripcion,
+                carrera: materia.carrera,
+                planestudios: materia.planestudios,
+                alumnos: alumnos
+            };
+        });
+
+        res.status(200).json({
+            docente: {
+                rfc: docente.rfc,
+                nombre: docente.nombre,
+                carrera: docente.carrera,
+                tecnologico: docente.tecnologico
+            },
+            materias: materiasConAlumnos
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error al obtener las materias y alumnos: " + error.message });
     }
 };
