@@ -7,7 +7,8 @@ const {
     updateAlumno,
     deleteAlumno,
     getMateriasCursadas,
-    getCalificacionesAlumno
+    getCalificacionesAlumno,
+    getAlumnosCalificacionAlta
 } = require('../controllers/alumnos');
 
 // Ruta para obtener todos los alumnos
@@ -30,5 +31,8 @@ router.get('/:curp/materias-cursadas', getMateriasCursadas);
 
 // Ruta para obtener las calificaciones de un alumno
 router.get('/:curp/calificaciones', getCalificacionesAlumno);
+
+// Ruta para obtener alumnos por materia con calificaciones superiores a 90
+router.get('/calificaciones-altas/:materiaId', getAlumnosCalificacionAlta);
 
 module.exports = router;

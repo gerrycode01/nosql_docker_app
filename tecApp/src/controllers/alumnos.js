@@ -137,3 +137,44 @@ exports.getCalificacionesAlumno = async (req, res) => {
       res.status(500).json({ message: "Error al obtener las calificaciones del alumno: " + error.message });
   }
 };
+
+// Listar los alumnos que han obtenido una calificación superior a 90 en una materia específica
+exports.getAlumnosCalificacionAlta = async (req, res) => {
+  const materiaId = req.params.materiaId;
+
+  try {
+      // Encuentra la materia específica por su ID
+      const materia = await Materia.findOne({ id: materiaId });
+      if (!materia) {
+          return res.status(404).json({ message: 'Materia no encontrada' });
+      }
+
+      // Encuentra los alumnos con calificaciones superiores a 90 en esa materia
+      const alumnos = await Alumno.find({
+          materiasC: {
+              $elemMatch: { id: materiaId, cal: { $gt: 90 } }
+          }
+      }, {
+          curp: 1,
+          nc: 1,
+          nombre: 1,
+          carrera: 1,
+          tecnologico: 1,
+          'materiasC.$': 1  // Proyecta solo el elemento coincidente en materiasC
+      });
+
+      res.status(200).json({
+          materia: materia,
+          alumnos: alumnos.map(alumno => ({
+              curp: alumno.curp,
+              nc: alumno.nc,
+              nombre: alumno.nombre,
+              carrera: alumno.carrera,
+              tecnologico: alumno.tecnologico,
+              calificacion: alumno.materiasC[0].cal  // Asumiendo que siempre habrá un elemento coincidente
+          }))
+      });
+  } catch (error) {
+      res.status(500).json({ message: "Error al obtener los datos: " + error.message });
+  }
+};
