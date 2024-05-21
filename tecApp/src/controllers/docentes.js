@@ -56,3 +56,36 @@ exports.deleteDocente = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// Listar detalles de una materia y los docentes que la imparten
+exports.getMateriaConDocentes = async (req, res) => {
+    const materiaId = req.params.materiaId;
+
+    try {
+        // Primero, encontrar la materia específica por su ID
+        const materia = await Materia.findOne({ id: materiaId });
+        if (!materia) {
+            return res.status(404).json({ message: 'Materia no encontrada' });
+        }
+
+        // Segundo, encontrar todos los docentes que imparten esa materia
+        const docentes = await Docente.find({ 'materias.id': materiaId })
+            .select('-materias');  // Excluyendo el campo 'materias'
+
+        // Construir el resultado combinando los datos de la materia con los docentes
+        const resultado = {
+            materia: materia,
+            docentes: docentes.map(doc => ({
+                rfc: doc.rfc,
+                nombre: doc.nombre,
+                carrera: doc.carrera,
+                tecnologico: doc.tecnologico
+                // puedes agregar más campos según necesites
+            }))
+        };
+
+        res.status(200).json(resultado);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener los datos: ' + error.message });
+    }
+};

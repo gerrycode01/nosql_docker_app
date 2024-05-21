@@ -5,7 +5,8 @@ const {
     getDocenteByRFC,
     createDocente,
     updateDocente,
-    deleteDocente
+    deleteDocente,
+    getMateriaConDocentes
 } = require('../controllers/docentes');
 
 // Ruta para obtener todos los docentes
@@ -22,5 +23,8 @@ router.put('/:rfc', updateDocente);
 
 // Ruta para eliminar un docente por RFC
 router.delete('/:rfc', deleteDocente);
+
+// Ruta para obtener una materia con sus docentes
+router.get('/:materiaId/detalles', getMateriaConDocentes);
 
 module.exports = router;
