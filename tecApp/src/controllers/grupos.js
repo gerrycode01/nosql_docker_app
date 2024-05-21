@@ -1,5 +1,8 @@
 const Grupo = require('../models/grupo');
 const Alumno = require('../models/alumno');
+const Materia = require('../models/materia');
+const Docente = require('../models/docente');
+const Aula = require('../models/aula');
 
 // Obtener todos los grupos
 exports.getAllGrupos = async (req, res) => {
@@ -82,5 +85,40 @@ exports.getAlumnosPorMateriaGrupo = async (req, res) => {
 
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+// Listar grupos por materia específica
+exports.getGruposPorMateria = async (req, res) => {
+    const materiaId = req.params.materiaId;
+
+    try {
+        // Encuentra la materia específica por su ID
+        const materia = await Materia.findOne({ id: materiaId });
+        if (!materia) {
+            return res.status(404).json({ message: 'Materia no encontrada' });
+        }
+
+        // Encuentra todos los grupos asociados a esa materia
+        const grupos = await Grupo.find({ 'materia.id': materiaId }).lean();
+
+        for (let grupo of grupos) {
+            // Detalles del docente
+            grupo.docente = await Docente.findOne({ rfc: grupo.docente.rfc }).select('-materias');
+            
+            // Detalles de los alumnos
+            const curps = grupo.alumnos.map(al => al.curp);
+            grupo.alumnos = await Alumno.find({ curp: { $in: curps } }).select('-materiasC -materiasA -materiasP');
+
+            // Detalles del aula
+            grupo.aula = await Aula.findOne({ id: grupo.aula.id }).select('id edificio descripcion');
+        }
+
+        res.status(200).json({
+            materia: materia,
+            grupos: grupos
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error al obtener los grupos: " + error.message });
     }
 };
