@@ -1,6 +1,7 @@
 const Docente = require('../models/docente');
 const Materia = require('../models/materia');
 const Grupo = require('../models/grupo');
+const Alumno = require('../models/alumno');
 
 // Obtener todos los docentes
 exports.getAllDocentes = async (req, res) => {
@@ -104,7 +105,8 @@ exports.getMateriasDocenteConAlumnos = async (req, res) => {
         // Obtener todos los grupos donde este docente imparte clases
         const grupos = await Grupo.find({ 'docente.rfc': rfc }).populate({
             path: 'alumnos.curp',
-            select: 'curp nc nombre carrera tecnologico -_id'  // Suponiendo que estos son los campos en el modelo Alumno
+            model: 'Alumno',
+            select: 'curp nc nombre carrera tecnologico -_id -materiasC -materiasA -materiasP'
         });
 
         // Mapear los IDs de materias de estos grupos para obtener detalles de las materias
@@ -113,15 +115,14 @@ exports.getMateriasDocenteConAlumnos = async (req, res) => {
 
         // Crear una lista de materias con detalles de los alumnos inscritos
         const materiasConAlumnos = materias.map(materia => {
-            const gruposMateria = grupos.filter(gr => gr.materia.id === materia.id);
-            const alumnos = gruposMateria.flatMap(gr => gr.alumnos);  // Aplanar la lista de alumnos de todos los grupos de esta materia
+            const grupo = grupos.find(gr => gr.materia.id === materia.id);
             return {
                 id: materia.id,
                 nombre: materia.nombre,
                 descripcion: materia.descripcion,
                 carrera: materia.carrera,
                 planestudios: materia.planestudios,
-                alumnos: alumnos
+                alumnos: grupo ? grupo.alumnos : []  // Asegurar que se devuelve la lista de alumnos
             };
         });
 
