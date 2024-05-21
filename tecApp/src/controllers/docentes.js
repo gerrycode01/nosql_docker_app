@@ -93,12 +93,11 @@ exports.getMateriaConDocentes = async (req, res) => {
     }
 };
 
-
 exports.getMateriasDocenteConAlumnos = async (req, res) => {
     try {
         const rfc = req.params.rfc;
         // Buscar el docente específico por RFC
-        const docente = await Docente.findOne({ rfc: rfc });
+        const docente = await Docente.findOne({ rfc });
         if (!docente) {
             return res.status(404).json({ message: 'Docente no encontrado' });
         }
@@ -106,16 +105,14 @@ exports.getMateriasDocenteConAlumnos = async (req, res) => {
         // Buscar los grupos que este docente imparte
         const grupos = await Grupo.find({ 'docente.rfc': rfc });
 
-        // Para cada grupo, encontrar la materia correspondiente y los alumnos
-        const materiasConAlumnos = await Promise.all(grupos.map(async grupo => {
+        // Recuperar detalles para cada grupo
+        const resultados = await Promise.all(grupos.map(async grupo => {
             const materia = await Materia.findOne({ id: grupo.materia.id });
-            const alumnos = await Alumno.find({
-                'curp': { $in: grupo.alumnos.map(a => a.curp) }
-            }).select('curp nc nombre carrera tecnologico -_id -materiasC -materiasA -materiasP');
-
+            const alumnos = await Alumno.find({ 'curp': { $in: grupo.alumnos.map(al => al.curp) } })
+                                        .select('curp nc nombre carrera tecnologico -_id -materiasC -materiasA -materiasP');
             return {
-                materia,
-                alumnos,
+                materia: materia,
+                alumnos: alumnos,
                 horario: grupo.horario
             };
         }));
@@ -127,9 +124,9 @@ exports.getMateriasDocenteConAlumnos = async (req, res) => {
                 carrera: docente.carrera,
                 tecnologico: docente.tecnologico
             },
-            materias: materiasConAlumnos
+            materiasImpartidas: resultados
         });
     } catch (error) {
-        res.status(500).json({ message: "Error al obtener las materias y alumnos: " + error.message });
+        res.status(500).json({ message: "Error al procesar la solicitud: " + error.message });
     }
 };
