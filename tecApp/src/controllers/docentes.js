@@ -93,34 +93,32 @@ exports.getMateriaConDocentes = async (req, res) => {
     }
 };
 
+
 exports.getMateriasDocenteConAlumnos = async (req, res) => {
     try {
         const rfc = req.params.rfc;
-        const docente = await Docente.findOne({ rfc: rfc }).select('-materias');
+        // Buscar el docente específico por RFC
+        const docente = await Docente.findOne({ rfc: rfc });
         if (!docente) {
             return res.status(404).json({ message: 'Docente no encontrado' });
         }
 
-        // Obtener todos los grupos donde este docente imparte clases
+        // Buscar los grupos que este docente imparte
         const grupos = await Grupo.find({ 'docente.rfc': rfc });
 
-        // Crear una lista de materias con detalles de los alumnos inscritos
-        const materiasConAlumnos = [];
-        for (const grupo of grupos) {
+        // Para cada grupo, encontrar la materia correspondiente y los alumnos
+        const materiasConAlumnos = await Promise.all(grupos.map(async grupo => {
             const materia = await Materia.findOne({ id: grupo.materia.id });
-            const alumnos = await Alumno.find({ curp: { $in: grupo.alumnos.map(a => a.curp) } })
-                                       .select('curp nc nombre carrera tecnologico -_id -materiasC -materiasA -materiasP');
+            const alumnos = await Alumno.find({
+                'curp': { $in: grupo.alumnos.map(a => a.curp) }
+            }).select('curp nc nombre carrera tecnologico -_id -materiasC -materiasA -materiasP');
 
-            materiasConAlumnos.push({
-                id: materia.id,
-                nombre: materia.nombre,
-                descripcion: materia.descripcion,
-                carrera: materia.carrera,
-                planestudios: materia.planestudios,
-                horario: grupo.horario,
-                alumnos: alumnos
-            });
-        }
+            return {
+                materia,
+                alumnos,
+                horario: grupo.horario
+            };
+        }));
 
         res.status(200).json({
             docente: {
