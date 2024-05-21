@@ -222,3 +222,34 @@ exports.getMateriasAlumnoConHorario = async (req, res) => {
     res.status(500).json({ message: "Error al obtener las materias del alumno: " + error.message });
   }
 };
+
+// Listar las materias pendientes de cursar para un alumno específico
+exports.getMateriasPendientes = async (req, res) => {
+  try {
+    const curp = req.params.curp;
+    // Obtener el alumno excluyendo materiasC y materiasA
+    const alumno = await Alumno.findOne({ curp: curp }).select('curp nc nombre carrera tecnologico materiasP');
+    if (!alumno) {
+      return res.status(404).json({ message: 'Alumno no encontrado' });
+    }
+
+    // Obtener los IDs de las materias pendientes
+    const materiasIds = alumno.materiasP.map(materia => materia.id);
+
+    // Obtener los detalles completos de las materias pendientes
+    const materias = await Materia.find({ id: { $in: materiasIds } });
+
+    res.status(200).json({
+      alumno: {
+        curp: alumno.curp,
+        nc: alumno.nc,
+        nombre: alumno.nombre,
+        carrera: alumno.carrera,
+        tecnologico: alumno.tecnologico
+      },
+      materiasPendientes: materias
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error al obtener las materias pendientes: " + error.message });
+  }
+};

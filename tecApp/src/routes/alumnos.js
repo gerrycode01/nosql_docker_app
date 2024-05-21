@@ -9,7 +9,8 @@ const {
     getMateriasCursadas,
     getCalificacionesAlumno,
     getAlumnosCalificacionAlta,
-    getMateriasAlumnoConHorario
+    getMateriasAlumnoConHorario,
+    getMateriasPendientes
 } = require('../controllers/alumnos');
 
 // Ruta para obtener todos los alumnos
@@ -38,5 +39,9 @@ router.get('/calificaciones-altas/:materiaId', getAlumnosCalificacionAlta);
 
 // Ruta para obtener las materias con horarios de un alumno específico
 router.get('/:curp/materias-con-horario', getMateriasAlumnoConHorario);
+
+// Ruta para obtener las materias pendientes de un alumno
+router.get('/:curp/materias-pendientes', getMateriasPendientes);
+
 
 module.exports = router;
