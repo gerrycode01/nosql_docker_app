@@ -1,6 +1,7 @@
 // En src/controllers/alumnos.js
 const Alumno = require('../models/alumno');
 const Materia = require('../models/materia');
+const Grupo = require('../models/grupo');
 
 // Obtener todos los alumnos
 exports.getAllAlumnos = async (req, res) => {
@@ -102,39 +103,39 @@ exports.getMateriasCursadas = async (req, res) => {
 // Listar las calificaciones de un alumno en todas sus materias cursadas
 exports.getCalificacionesAlumno = async (req, res) => {
   try {
-      const { curp } = req.params;
+    const { curp } = req.params;
 
-      // Encuentra el alumno y realiza una búsqueda para las materias
-      const alumno = await Alumno.findOne({ curp: curp });
-      if (!alumno) {
-          return res.status(404).json({ message: "Alumno no encontrado" });
+    // Encuentra el alumno y realiza una búsqueda para las materias
+    const alumno = await Alumno.findOne({ curp: curp });
+    if (!alumno) {
+      return res.status(404).json({ message: "Alumno no encontrado" });
+    }
+
+    // Extrayendo los IDs de materias cursadas
+    const materiasIds = alumno.materiasC.map(m => m.id);
+
+    // Obteniendo la información de las materias con esos IDs
+    const materias = await Materia.find({ id: { $in: materiasIds } });
+
+    // Construyendo la respuesta con las calificaciones
+    const materiasConCalificaciones = alumno.materiasC.map(mc => {
+      const materiaInfo = materias.find(m => m.id === mc.id);
+      return {
+        materia: materiaInfo,
+        calificacion: mc.cal
+      };
+    });
+
+    res.status(200).json({
+      alumno: {
+        curp: alumno.curp,
+        nombre: alumno.nombre,
+        carrera: alumno.carrera,
+        materiasCursadas: materiasConCalificaciones
       }
-
-      // Extrayendo los IDs de materias cursadas
-      const materiasIds = alumno.materiasC.map(m => m.id);
-
-      // Obteniendo la información de las materias con esos IDs
-      const materias = await Materia.find({ id: { $in: materiasIds } });
-
-      // Construyendo la respuesta con las calificaciones
-      const materiasConCalificaciones = alumno.materiasC.map(mc => {
-          const materiaInfo = materias.find(m => m.id === mc.id);
-          return {
-              materia: materiaInfo,
-              calificacion: mc.cal
-          };
-      });
-
-      res.status(200).json({
-          alumno: {
-              curp: alumno.curp,
-              nombre: alumno.nombre,
-              carrera: alumno.carrera,
-              materiasCursadas: materiasConCalificaciones
-          }
-      });
+    });
   } catch (error) {
-      res.status(500).json({ message: "Error al obtener las calificaciones del alumno: " + error.message });
+    res.status(500).json({ message: "Error al obtener las calificaciones del alumno: " + error.message });
   }
 };
 
@@ -143,38 +144,81 @@ exports.getAlumnosCalificacionAlta = async (req, res) => {
   const materiaId = req.params.materiaId;
 
   try {
-      // Encuentra la materia específica por su ID
-      const materia = await Materia.findOne({ id: materiaId });
-      if (!materia) {
-          return res.status(404).json({ message: 'Materia no encontrada' });
+    // Encuentra la materia específica por su ID
+    const materia = await Materia.findOne({ id: materiaId });
+    if (!materia) {
+      return res.status(404).json({ message: 'Materia no encontrada' });
+    }
+
+    // Encuentra los alumnos con calificaciones superiores a 90 en esa materia
+    const alumnos = await Alumno.find({
+      materiasC: {
+        $elemMatch: { id: materiaId, cal: { $gt: 90 } }
       }
+    }, {
+      curp: 1,
+      nc: 1,
+      nombre: 1,
+      carrera: 1,
+      tecnologico: 1,
+      'materiasC.$': 1  // Proyecta solo el elemento coincidente en materiasC
+    });
 
-      // Encuentra los alumnos con calificaciones superiores a 90 en esa materia
-      const alumnos = await Alumno.find({
-          materiasC: {
-              $elemMatch: { id: materiaId, cal: { $gt: 90 } }
-          }
-      }, {
-          curp: 1,
-          nc: 1,
-          nombre: 1,
-          carrera: 1,
-          tecnologico: 1,
-          'materiasC.$': 1  // Proyecta solo el elemento coincidente en materiasC
-      });
-
-      res.status(200).json({
-          materia: materia,
-          alumnos: alumnos.map(alumno => ({
-              curp: alumno.curp,
-              nc: alumno.nc,
-              nombre: alumno.nombre,
-              carrera: alumno.carrera,
-              tecnologico: alumno.tecnologico,
-              calificacion: alumno.materiasC[0].cal  // Asumiendo que siempre habrá un elemento coincidente
-          }))
-      });
+    res.status(200).json({
+      materia: materia,
+      alumnos: alumnos.map(alumno => ({
+        curp: alumno.curp,
+        nc: alumno.nc,
+        nombre: alumno.nombre,
+        carrera: alumno.carrera,
+        tecnologico: alumno.tecnologico,
+        calificacion: alumno.materiasC[0].cal  // Asumiendo que siempre habrá un elemento coincidente
+      }))
+    });
   } catch (error) {
-      res.status(500).json({ message: "Error al obtener los datos: " + error.message });
+    res.status(500).json({ message: "Error al obtener los datos: " + error.message });
+  }
+};
+
+
+// Listar las materias que cursa un alumno específico, incluyendo horarios
+exports.getMateriasAlumnoConHorario = async (req, res) => {
+  try {
+    const curp = req.params.curp;
+    const alumno = await Alumno.findOne({ curp: curp }).select('-materiasC -materiasP');
+    if (!alumno) {
+      return res.status(404).json({ message: 'Alumno no encontrado' });
+    }
+
+    // Obtener los grupos en los que el alumno está inscrito
+    const grupos = await Grupo.find({ 'alumnos.curp': curp });
+    const materiasIds = grupos.map(grupo => grupo.materia.id);
+
+    // Obtener detalles de materias y combinar con horarios de los grupos
+    const materias = await Materia.find({ id: { $in: materiasIds } });
+    const materiasConHorarios = materias.map(materia => {
+      const grupo = grupos.find(gr => gr.materia.id === materia.id);
+      return {
+        id: materia.id,
+        nombre: materia.nombre,
+        carrera: materia.carrera,
+        descripcion: materia.descripcion,
+        planestudios: materia.planestudios,
+        horario: grupo ? grupo.horario : 'No especificado'
+      };
+    });
+
+    res.status(200).json({
+      alumno: {
+        curp: alumno.curp,
+        nc: alumno.nc,
+        nombre: alumno.nombre,
+        carrera: alumno.carrera,
+        tecnologico: alumno.tecnologico
+      },
+      materias: materiasConHorarios
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error al obtener las materias del alumno: " + error.message });
   }
 };
