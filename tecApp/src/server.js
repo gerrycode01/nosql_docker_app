@@ -9,6 +9,7 @@ const app = express();
 
 // Middleware personalizado para registrar solicitudes en Redis
 app.use(logger);
+
 // Middleware para parsear solicitudes JSON
 app.use(express.json());
 
@@ -29,12 +30,6 @@ app.use('/api/materias', materiasRoutes);
 app.use('/api/aulas', aulasRoutes);
 app.use('/api/docentes', docentesRoutes);
 app.use('/api/grupos', gruposRoutes);
-
-// Agregar esto en tu archivo server.js o donde configures tus rutas
-app.get('/', (req, res) => {
-  res.send('Bienvenido a mi aplicación!');
-});
-
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
