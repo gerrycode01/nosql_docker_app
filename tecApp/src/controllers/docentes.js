@@ -93,6 +93,7 @@ exports.getMateriaConDocentes = async (req, res) => {
     }
 };
 
+// Ajustando la consulta para evitar la mezcla de inclusión y exclusión
 exports.getMateriasDocenteConAlumnos = async (req, res) => {
     try {
         const rfc = req.params.rfc;
@@ -109,7 +110,7 @@ exports.getMateriasDocenteConAlumnos = async (req, res) => {
         const resultados = await Promise.all(grupos.map(async grupo => {
             const materia = await Materia.findOne({ id: grupo.materia.id });
             const alumnos = await Alumno.find({ 'curp': { $in: grupo.alumnos.map(al => al.curp) } })
-                                        .select('curp nc nombre carrera tecnologico -_id -materiasC -materiasA -materiasP');
+                                        .select('curp nc nombre carrera tecnologico -_id');  // Solo incluir los campos necesarios
             return {
                 materia: materia,
                 alumnos: alumnos,
