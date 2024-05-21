@@ -1,4 +1,5 @@
 const Docente = require('../models/docente');
+const Materia = require('../models/materia');
 
 // Obtener todos los docentes
 exports.getAllDocentes = async (req, res) => {
